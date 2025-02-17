@@ -13,7 +13,7 @@ GOOGLE_SHEET_TAB = os.getenv("GOOGLE_SHEET_TAB_TROPA")
 LOG_EXECUTION = os.getenv("LOG_EXECUTION_TROPA", "false").lower() == "true"
 
 # 📌 Criar o arquivo de credenciais JSON dinamicamente
-CREDENTIALS_FILE = "automacao-meta-ads.json"
+CREDENTIALS_PATH = "automacao-meta-ads.json"
 
 if GOOGLE_CREDENTIALS:
     try:
