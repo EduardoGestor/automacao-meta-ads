@@ -31,10 +31,12 @@ jobs:
 
       - name: Registrar Log no GitHub
         if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_PAT }}
         run: |
           echo "$(date) - Cliente TROPA - Workflow finalizado." >> logs.txt
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add logs.txt
           git commit -m "Atualiza logs de execução TROPA"
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_PAT }}@github.com/EduardoGestor/automacao-meta-ads.git
