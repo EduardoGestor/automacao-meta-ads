@@ -1,0 +1,40 @@
+name: Executar Script Cliente TROPA
+
+on:
+  schedule:
+    - cron: "0 7 * * *"  # Executa todos os dias às 07:00 UTC (04:00 no Brasil)
+  workflow_dispatch:  # Permite rodar manualmente
+
+jobs:
+  executar-script-tropa:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar Repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+
+      - name: Instalar Dependências
+        run: pip install -r requirements.txt
+
+      - name: Executar Script Cliente TROPA
+        env:
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID_TROPA }}
+          GOOGLE_SHEET_TAB: ${{ secrets.GOOGLE_SHEET_TAB_TROPA }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          LOG_EXECUTION: ${{ secrets.LOG_EXECUTION_TROPA }}
+        run: python clientes/CA_TROPA/script_tropa.py
+
+      - name: Registrar Log no GitHub
+        if: always()
+        run: |
+          echo "$(date) - Cliente TROPA - Workflow finalizado." >> logs.txt
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add logs.txt
+          git commit -m "Atualiza logs de execução TROPA"
+          git push
