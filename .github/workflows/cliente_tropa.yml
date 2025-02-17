@@ -2,8 +2,8 @@ name: Executar Script Cliente TROPA
 
 on:
   schedule:
-    - cron: "0 10 * * *" # Executa diariamente às 10:00 UTC (07:00 no Brasil)
-  workflow_dispatch: # Permite execução manual
+    - cron: "0 10 * * *"  # Executa todos os dias às 10:00 UTC (07:00 no Brasil)
+  workflow_dispatch:  # Permite rodar manualmente
 
 jobs:
   executar-script-tropa:
@@ -21,19 +21,33 @@ jobs:
       - name: Instalar Dependências
         run: pip install -r requirements.txt
 
-      - name: Criar Credenciais Temporárias do Google
+      - name: Criar Credenciais JSON para Google Sheets
         env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        run: echo "$GOOGLE_CREDENTIALS" > automacao-meta-ads.json
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_TROPA }}
+        run: |
+          echo "$GOOGLE_CREDENTIALS" > automacao-meta-ads.json
 
       - name: Executar Script Cliente TROPA
         env:
+          GOOGLE_CREDENTIALS_FILE: automacao-meta-ads.json
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID_TROPA }}
           GOOGLE_SHEET_TAB: ${{ secrets.GOOGLE_SHEET_TAB_TROPA }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          LOG_EXECUTION: ${{ secrets.LOG_EXECUTION_TROPA }}
         run: python clientes/CA_TROPA/script_tropa.py
+
+      - name: Configurar Git para commit
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/EduardoGestor/automacao-meta-ads.git
 
       - name: Registrar Log no GitHub
         if: always()
         run: |
-          echo "$(date) - Cliente TROPA - Workflow 
+          echo "$(date) - Cliente TROPA - Workflow finalizado." >> logs.txt
+          git add logs.txt
+          git commit -m "Atualiza logs de execução TROPA"
+          git push origin main
