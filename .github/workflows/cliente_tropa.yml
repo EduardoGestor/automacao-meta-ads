@@ -1,12 +1,3 @@
-- name: Verificar credenciais Google
-  run: |
-    if [ -z "${{ secrets.GOOGLE_CREDENTIALS_TROPA }}" ]; then
-      echo "❌ Erro: Secret GOOGLE_CREDENTIALS_TROPA não está definido!" && exit 1
-    else
-      echo "${{ secrets.GOOGLE_CREDENTIALS_TROPA }}" | sha256sum
-      echo "✅ Secret GOOGLE_CREDENTIALS_TROPA carregado com sucesso!"
-    fi
-
 name: Executar Script Cliente TROPA
 
 on:
@@ -30,6 +21,14 @@ jobs:
       - name: Instalar Dependências
         run: pip install -r requirements.txt
 
+      - name: Verificar credenciais Google
+        run: |
+          if [ -z "${{ secrets.GOOGLE_CREDENTIALS_TROPA }}" ]; then
+            echo "❌ Erro: Secret GOOGLE_CREDENTIALS_TROPA não está definido!" && exit 1
+          else
+            echo "✅ Secret GOOGLE_CREDENTIALS_TROPA carregado com sucesso!"
+          fi
+
       - name: Criar arquivo de credenciais do Google
         run: echo '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' > automacao-meta-ads.json
 
@@ -48,13 +47,18 @@ jobs:
           name: logs-tropa
           path: logs.txt
 
-      - name: Registrar Log no GitHub
+      - name: Configurar autenticação do GitHub
         if: always()
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          echo "machine github.com login oauth2 password ${{ secrets.GH_TOKEN }}" > ~/.netrc
+
+      - name: Registrar Log no GitHub
+        if: always()
+        run: |
           git pull origin main --rebase  # 🔹 Sincroniza antes de fazer push
           echo "$(date) - Cliente TROPA - Workflow finalizado." >> logs.txt
           git add logs.txt
           git commit -m "Atualiza logs de execução TROPA"
-          git push origin main
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/EduardoGestor/automacao-meta-ads.git main
