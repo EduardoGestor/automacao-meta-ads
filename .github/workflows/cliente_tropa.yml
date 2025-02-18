@@ -21,12 +21,7 @@ jobs:
       - name: Instalar Dependências
         run: pip install -r requirements.txt
 
-      # 🔍 Validação do JSON antes de rodar o script
       - name: Verificar JSON das Credenciais
-        run: |
-          echo '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' | python -m json.tool || exit 1
-
-      - name: Verificar se a chave JSON está definida
         run: |
           if [ -z "${{ secrets.GOOGLE_CREDENTIALS_TROPA }}" ]; then
             echo "❌ Erro: Secret GOOGLE_CREDENTIALS_TROPA não está definido!" && exit 1
@@ -37,15 +32,10 @@ jobs:
       - name: Criar arquivo de credenciais do Google
         run: |
           printf '%s' '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' > automacao-meta-ads.json
-          cat automacao-meta-ads.json | sha256sum
+          sed -i 's/\\n/\n/g' automacao-meta-ads.json  # Corrige quebras de linha
+          cat automacao-meta-ads.json | python -m json.tool || exit 1  # Valida o JSON
+          echo "✅ Arquivo de credenciais criado e validado!"
 
-          if [ ! -s automacao-meta-ads.json ]; then
-            echo "❌ Erro: O arquivo de credenciais não foi criado corretamente!" && exit 1
-          else
-            echo "✅ Arquivo de credenciais criado com sucesso!"
-          fi
-
-      # ✅ **AQUI EXECUTAMOS O SCRIPT APÓS TODA A VALIDAÇÃO**
       - name: Executar Script Cliente TROPA
         env:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID_TROPA }}
