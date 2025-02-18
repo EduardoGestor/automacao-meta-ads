@@ -13,6 +13,12 @@ jobs:
       - name: 📥 Clonar Repositório
         uses: actions/checkout@v3
 
+      - name: 🛠️ Instalar jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: 🔎 Verificar instalação do jq
+        run: jq --version
+
       - name: ⚙️ Configurar Python
         uses: actions/setup-python@v3
         with:
