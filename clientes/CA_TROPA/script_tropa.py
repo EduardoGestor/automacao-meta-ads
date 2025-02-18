@@ -5,40 +5,51 @@ from oauth2client.service_account import ServiceAccountCredentials
 import requests
 from datetime import datetime, timedelta
 
-# 📌 Carregar Secrets do GitHub Actions
-META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN_TROPA")
-GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS_TROPA")  # Novo nome do secret
-GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID_TROPA")
-GOOGLE_SHEET_TAB = os.getenv("GOOGLE_SHEET_TAB_TROPA")
-LOG_EXECUTION = os.getenv("LOG_EXECUTION_TROPA", "false").lower() == "true"
+# 🔍 **Depuração da variável de ambiente**
+print("🔎 Verificando variável de ambiente GOOGLE_CREDENTIALS_TROPA...")
 
-# 📌 Criar o arquivo JSON das credenciais do Google
+GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS_TROPA")
+if not GOOGLE_CREDENTIALS:
+    print("❌ ERRO: A variável de ambiente GOOGLE_CREDENTIALS_TROPA não está definida!")
+    exit(1)
+else:
+    print("✅ Variável GOOGLE_CREDENTIALS_TROPA carregada com sucesso!")
+
+# 📌 Criar o arquivo JSON corretamente
 CREDENTIALS_PATH = "automacao-meta-ads.json"
 
-if GOOGLE_CREDENTIALS:
-    try:
-        credentials_data = json.loads(GOOGLE_CREDENTIALS)  # Converte string para JSON
-        credentials_data["private_key"] = credentials_data["private_key"].replace("\\n", "\n")  # Corrige a private_key
+try:
+    credentials_data = json.loads(GOOGLE_CREDENTIALS)  # Converte string para JSON
+    with open(CREDENTIALS_PATH, "w", encoding="utf-8") as f:
+        json.dump(credentials_data, f, indent=2)  # Garante um formato bem estruturado
 
-        with open(CREDENTIALS_PATH, "w", encoding="utf-8") as f:
-            json.dump(credentials_data, f, indent=2)  # Salva um JSON formatado corretamente
+    # 🚀 Verificar se o arquivo foi salvo corretamente
+    if not os.path.exists(CREDENTIALS_PATH):
+        raise FileNotFoundError(f"❌ ERRO: O arquivo {CREDENTIALS_PATH} não foi criado corretamente!")
 
-        # 📌 Verificar se o arquivo foi salvo corretamente
-        if not os.path.exists(CREDENTIALS_PATH) or os.stat(CREDENTIALS_PATH).st_size == 0:
-            raise FileNotFoundError(f"Erro: O arquivo {CREDENTIALS_PATH} não foi criado corretamente!")
+    if os.stat(CREDENTIALS_PATH).st_size == 0:
+        raise ValueError(f"❌ ERRO: O arquivo {CREDENTIALS_PATH} está vazio!")
 
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Erro ao decodificar JSON das credenciais: {e}")
-else:
-    raise ValueError("Erro: Variável de ambiente GOOGLE_CREDENTIALS_TROPA não encontrada!")
+    print("✅ Arquivo de credenciais JSON criado e validado!")
+
+except json.JSONDecodeError as e:
+    print(f"❌ ERRO: Falha ao decodificar JSON das credenciais: {e}")
+    exit(1)
+except Exception as e:
+    print(f"❌ ERRO inesperado ao salvar credenciais: {e}")
+    exit(1)
 
 # 📌 Autenticar no Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_PATH, scope)
 client = gspread.authorize(creds)
-sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet(GOOGLE_SHEET_TAB)
 
 # 📌 Configuração do Meta Ads API
+META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN_TROPA")
+GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID_TROPA")
+GOOGLE_SHEET_TAB = os.getenv("GOOGLE_SHEET_TAB_TROPA")
+LOG_EXECUTION = os.getenv("LOG_EXECUTION_TROPA", "false").lower() == "true"
+
 AD_ACCOUNT_ID = "act_1916809535407174"
 API_VERSION = "v22.0"  # Atualizado para a versão mais recente
 
@@ -49,6 +60,7 @@ data_formatada = data_ontem.strftime("%Y-%m-%d")
 data_numerica = (data_ontem - datetime(1899, 12, 30)).days  # Formato do Google Sheets
 
 # 📌 Buscar a Coluna Correta no Google Sheets
+sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet(GOOGLE_SHEET_TAB)
 datas_na_planilha = sheet.row_values(2, value_render_option='UNFORMATTED_VALUE')
 coluna_dia = None
 
