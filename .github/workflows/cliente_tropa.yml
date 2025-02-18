@@ -1,3 +1,12 @@
+- name: Verificar credenciais Google
+  run: |
+    if [ -z "${{ secrets.GOOGLE_CREDENTIALS_TROPA }}" ]; then
+      echo "❌ Erro: Secret GOOGLE_CREDENTIALS_TROPA não está definido!" && exit 1
+    else
+      echo "${{ secrets.GOOGLE_CREDENTIALS_TROPA }}" | sha256sum
+      echo "✅ Secret GOOGLE_CREDENTIALS_TROPA carregado com sucesso!"
+    fi
+
 name: Executar Script Cliente TROPA
 
 on:
