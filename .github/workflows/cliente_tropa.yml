@@ -10,18 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clonar Repositório
+      - name: 📥 Clonar Repositório
         uses: actions/checkout@v3
 
-      - name: Configurar Python
+      - name: ⚙️ Configurar Python
         uses: actions/setup-python@v3
         with:
           python-version: "3.11"
 
-      - name: Instalar Dependências
+      - name: 📦 Instalar Dependências
         run: pip install -r requirements.txt
 
-      - name: Verificar JSON das Credenciais
+      # 🔍 Validação antes da execução
+      - name: 🛠️ Verificar JSON das Credenciais
         run: |
           if [ -z "${{ secrets.GOOGLE_CREDENTIALS_TROPA }}" ]; then
             echo "❌ Erro: Secret GOOGLE_CREDENTIALS_TROPA não está definido!" && exit 1
@@ -29,14 +30,20 @@ jobs:
             echo "✅ Secret GOOGLE_CREDENTIALS_TROPA carregado com sucesso!"
           fi
 
-      - name: Criar arquivo de credenciais do Google
+      - name: 🔑 Criar arquivo de credenciais do Google
         run: |
           printf '%s' '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' > automacao-meta-ads.json
           sed -i 's/\\n/\n/g' automacao-meta-ads.json  # Corrige quebras de linha
           cat automacao-meta-ads.json | python -m json.tool || exit 1  # Valida o JSON
-          echo "✅ Arquivo de credenciais criado e validado!"
 
-      - name: Executar Script Cliente TROPA
+          if [ ! -s automacao-meta-ads.json ]; then
+            echo "❌ ERRO: O arquivo de credenciais não foi criado corretamente!" && exit 1
+          else
+            echo "✅ Arquivo de credenciais criado e validado!"
+          fi
+
+      # ✅ **Execução do Script**
+      - name: 🚀 Executar Script Cliente TROPA
         env:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID_TROPA }}
           GOOGLE_SHEET_TAB: ${{ secrets.GOOGLE_SHEET_TAB_TROPA }}
@@ -44,21 +51,22 @@ jobs:
           LOG_EXECUTION: ${{ secrets.LOG_EXECUTION_TROPA }}
         run: python clientes/CA_TROPA/script_tropa.py
 
-      - name: Salvar logs como artefato
+      - name: 📝 Salvar logs como artefato
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: logs-tropa
           path: logs.txt
 
-      - name: Configurar autenticação do GitHub
+      # 🔄 **Sincronizar logs com o GitHub**
+      - name: 🔄 Configurar autenticação do GitHub
         if: always()
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           echo "machine github.com login oauth2 password ${{ secrets.GH_TOKEN }}" > ~/.netrc
 
-      - name: Registrar Log no GitHub
+      - name: 📤 Registrar Log no GitHub
         if: always()
         run: |
           git pull origin main --rebase || echo "⚠️ Nenhuma atualização encontrada no repositório"
