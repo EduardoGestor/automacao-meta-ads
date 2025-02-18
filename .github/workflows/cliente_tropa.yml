@@ -42,7 +42,7 @@ jobs:
 
       - name: Salvar logs como artefato
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-tropa
           path: logs.txt
