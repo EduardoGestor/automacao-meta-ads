@@ -18,8 +18,13 @@ CREDENTIALS_PATH = "automacao-meta-ads.json"
 if GOOGLE_CREDENTIALS:
     try:
         credentials_data = json.loads(GOOGLE_CREDENTIALS)  # Converter string para JSON
-        with open(CREDENTIALS_FILE, "w") as f:
+        with open(CREDENTIALS_PATH, "w") as f:
             json.dump(credentials_data, f)  # Salvar no arquivo JSON
+        
+        # 🚀 Verificar se o arquivo foi criado corretamente
+        if not os.path.exists(CREDENTIALS_PATH):
+            raise FileNotFoundError(f"Erro: O arquivo {CREDENTIALS_PATH} não foi criado corretamente!")
+
     except json.JSONDecodeError as e:
         raise ValueError(f"Erro ao decodificar JSON das credenciais: {e}")
 else:
@@ -27,7 +32,7 @@ else:
 
 # 📌 Autenticar no Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_PATH, scope)
 client = gspread.authorize(creds)
 sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet(GOOGLE_SHEET_TAB)
 
@@ -66,7 +71,7 @@ if coluna_dia:
     jsonData = response.json()
 
     if "error" in jsonData:
-        erro_msg = f"⚠️ Erro ao buscar API: {jsonData['error']['message']}"
+        erro_msg = f"⚠️ Erro ao buscar API: {jsonData['error']['message']} - Tipo: {jsonData['error']['type']}"
         print(erro_msg)
         log_data = f"{datetime.now()} - ERRO - {erro_msg}\n"
     else:
