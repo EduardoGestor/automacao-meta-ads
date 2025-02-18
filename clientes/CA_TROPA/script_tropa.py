@@ -12,17 +12,17 @@ GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID_TROPA")
 GOOGLE_SHEET_TAB = os.getenv("GOOGLE_SHEET_TAB_TROPA")
 LOG_EXECUTION = os.getenv("LOG_EXECUTION_TROPA", "false").lower() == "true"
 
-# 📌 Criar o arquivo de credenciais JSON dinamicamente
+# Criar o arquivo JSON corretamente
 CREDENTIALS_PATH = "automacao-meta-ads.json"
 
 if GOOGLE_CREDENTIALS:
     try:
-        credentials_data = json.loads(GOOGLE_CREDENTIALS)  # Converter string para JSON
-        with open(CREDENTIALS_PATH, "w") as f:
-            json.dump(credentials_data, f)  # Salvar no arquivo JSON
-        
-        # 🚀 Verificar se o arquivo foi criado corretamente
-        if not os.path.exists(CREDENTIALS_PATH):
+        credentials_data = json.loads(GOOGLE_CREDENTIALS)  # Converte string para JSON
+        with open(CREDENTIALS_PATH, "w", encoding="utf-8") as f:
+            json.dump(credentials_data, f, indent=2)  # Garante um formato bem estruturado
+
+        # Verificar se o arquivo foi salvo corretamente
+        if not os.path.exists(CREDENTIALS_PATH) or os.stat(CREDENTIALS_PATH).st_size == 0:
             raise FileNotFoundError(f"Erro: O arquivo {CREDENTIALS_PATH} não foi criado corretamente!")
 
     except json.JSONDecodeError as e:
