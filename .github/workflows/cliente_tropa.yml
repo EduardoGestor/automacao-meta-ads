@@ -21,6 +21,7 @@ jobs:
       - name: Instalar Dependências
         run: pip install -r requirements.txt
 
+      # 🔍 Validação do JSON antes de rodar o script
       - name: Verificar JSON das Credenciais
         run: |
           echo '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' | python -m json.tool || exit 1
@@ -44,6 +45,7 @@ jobs:
             echo "✅ Arquivo de credenciais criado com sucesso!"
           fi
 
+      # ✅ **AQUI EXECUTAMOS O SCRIPT APÓS TODA A VALIDAÇÃO**
       - name: Executar Script Cliente TROPA
         env:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID_TROPA }}
