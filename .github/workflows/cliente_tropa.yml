@@ -38,13 +38,12 @@ jobs:
 
       - name: 🔑 Criar arquivo de credenciais do Google
         run: |
-          printf '%s' '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' > automacao-meta-ads.json
-          sed -i 's/\\n/\n/g' automacao-meta-ads.json  # Corrige quebras de linha
-          cat automacao-meta-ads.json | python -m json.tool || exit 1  # Valida o JSON
+          echo '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' | sed 's/\\n/\n/g' > automacao-meta-ads.json
+          cat automacao-meta-ads.json | jq . || (echo "❌ JSON inválido!"; exit 1)
 
           if [ ! -s automacao-meta-ads.json ]; then
             echo "❌ ERRO: O arquivo de credenciais não foi criado corretamente!" && exit 1
-          else
+           else
             echo "✅ Arquivo de credenciais criado e validado!"
           fi
 
