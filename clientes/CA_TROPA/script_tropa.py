@@ -5,30 +5,30 @@ from oauth2client.service_account import ServiceAccountCredentials
 import requests
 from datetime import datetime, timedelta
 
-# 🔍 **Depuração da variável de ambiente**
-print("🔎 Verificando variável de ambiente GOOGLE_CREDENTIALS_TROPA...")
+# 🔐 **INSERIR AQUI SUA CHAVE JSON DIRETAMENTE NO SCRIPT** 
+GOOGLE_CREDENTIALS_JSON = {
+  "type": "service_account",
+  "project_id": "automacao-meta-ads",
+  "private_key_id": "115f4b58ec921d7c84130fcb58be75631ba13d15",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCw6dze5zD34AyO\n...",
+  "client_email": "google-sheets-api@automacao-meta-ads.iam.gserviceaccount.com",
+  "client_id": "113736604810452032719",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/google-sheets-api%40automacao-meta-ads.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
 
-GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS_TROPA")
-if not GOOGLE_CREDENTIALS:
-    print("❌ ERRO: A variável de ambiente GOOGLE_CREDENTIALS_TROPA não está definida!")
-    exit(1)
-else:
-    print("✅ Variável GOOGLE_CREDENTIALS_TROPA carregada com sucesso!")
-
-# 📌 Criar o arquivo JSON corretamente
+# 📌 Criar o arquivo JSON localmente
 CREDENTIALS_PATH = "automacao-meta-ads.json"
 
 try:
-    credentials_data = json.loads(GOOGLE_CREDENTIALS)  # Converte string para JSON
     with open(CREDENTIALS_PATH, "w", encoding="utf-8") as f:
-        json.dump(credentials_data, f, indent=2)  # Garante um formato bem estruturado
+        json.dump(GOOGLE_CREDENTIALS_JSON, f, indent=2)
 
-    # 🚀 Verificar se o arquivo foi salvo corretamente
-    if not os.path.exists(CREDENTIALS_PATH):
+    if not os.path.exists(CREDENTIALS_PATH) or os.stat(CREDENTIALS_PATH).st_size == 0:
         raise FileNotFoundError(f"❌ ERRO: O arquivo {CREDENTIALS_PATH} não foi criado corretamente!")
-
-    if os.stat(CREDENTIALS_PATH).st_size == 0:
-        raise ValueError(f"❌ ERRO: O arquivo {CREDENTIALS_PATH} está vazio!")
 
     print("✅ Arquivo de credenciais JSON criado e validado!")
 
@@ -51,13 +51,13 @@ GOOGLE_SHEET_TAB = os.getenv("GOOGLE_SHEET_TAB_TROPA")
 LOG_EXECUTION = os.getenv("LOG_EXECUTION_TROPA", "false").lower() == "true"
 
 AD_ACCOUNT_ID = "act_1916809535407174"
-API_VERSION = "v22.0"  # Atualizado para a versão mais recente
+API_VERSION = "v22.0"
 
 # 📌 Data de busca: Ontem
 hoje = datetime.today()
 data_ontem = hoje - timedelta(days=1)
 data_formatada = data_ontem.strftime("%Y-%m-%d")
-data_numerica = (data_ontem - datetime(1899, 12, 30)).days  # Formato do Google Sheets
+data_numerica = (data_ontem - datetime(1899, 12, 30)).days
 
 # 📌 Buscar a Coluna Correta no Google Sheets
 sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet(GOOGLE_SHEET_TAB)
