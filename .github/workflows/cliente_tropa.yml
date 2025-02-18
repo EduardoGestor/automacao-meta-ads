@@ -35,7 +35,9 @@ jobs:
 
       - name: Criar arquivo de credenciais do Google
         run: |
-          echo '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' > automacao-meta-ads.json
+          printf '%s' '${{ secrets.GOOGLE_CREDENTIALS_TROPA }}' > automacao-meta-ads.json
+          cat automacao-meta-ads.json | sha256sum
+
           if [ ! -s automacao-meta-ads.json ]; then
             echo "❌ Erro: O arquivo de credenciais não foi criado corretamente!" && exit 1
           else
